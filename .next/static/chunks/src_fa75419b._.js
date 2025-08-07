@@ -2570,7 +2570,7 @@ function LocationTrackingMap() {
                                     className: "relative h-80 bg-gray-100 rounded-lg overflow-hidden",
                                     children: [
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("img", {
-                                            src: "https://placehold.co/600x320?text=Interactive+GPS+Map+with+Real-time+Location+Tracking+and+Geofence+Monitoring",
+                                            src: "https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/8cc2af4d-1a3c-4e23-9dff-fdc8c64355ed.png",
                                             alt: "Interactive GPS map showing real-time employee locations with geofence boundaries and security status indicators",
                                             className: "w-full h-full object-cover",
                                             onError: (e)=>{
