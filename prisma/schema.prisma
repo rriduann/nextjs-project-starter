@@ -1,0 +1,229 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Employee {
+  id          String   @id @default(cuid())
+  employeeId  String   @unique
+  name        String
+  email       String   @unique
+  department  String?
+  position    String?
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  attendanceRecords AttendanceRecord[]
+  devices          Device[]
+  securityViolations SecurityViolation[]
+
+  @@map("employees")
+}
+
+model AttendanceRecord {
+  id            String   @id @default(cuid())
+  employeeId    String
+  qrData        String
+  timestamp     DateTime @default(now())
+  latitude      Float
+  longitude     Float
+  address       String?
+  accuracy      Float?
+  status        AttendanceStatus @default(VALID)
+  securityScore Int      @default(100)
+  deviceInfo    String?
+  ipAddress     String?
+  userAgent     String?
+  
+  // Security metadata
+  locationValidated Boolean @default(false)
+  networkValidated  Boolean @default(false)
+  deviceValidated   Boolean @default(false)
+  
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [employeeId])
+
+  @@map("attendance_records")
+}
+
+model Device {
+  id                String      @id @default(cuid())
+  employeeId        String
+  deviceModel       String
+  osVersion         String
+  appVersion        String
+  deviceFingerprint String      @unique
+  status            DeviceStatus @default(ONLINE)
+  trustLevel        TrustLevel  @default(MEDIUM)
+  securityScore     Int         @default(100)
+  lastSeen          DateTime    @default(now())
+  registrationDate  DateTime    @default(now())
+  
+  // Location info
+  lastLatitude      Float?
+  lastLongitude     Float?
+  lastAddress       String?
+  
+  // Security flags
+  isRooted          Boolean     @default(false)
+  mockLocationDetected Boolean  @default(false)
+  vpnActive         Boolean     @default(false)
+  debuggingEnabled  Boolean     @default(false)
+  unknownSources    Boolean     @default(false)
+  xposedInstalled   Boolean     @default(false)
+  runningOnEmulator Boolean     @default(false)
+  
+  // Network info
+  ipAddress         String?
+  userAgent         String?
+  
+  createdAt         DateTime    @default(now())
+  updatedAt         DateTime    @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [employeeId])
+
+  @@map("devices")
+}
+
+model SecurityViolation {
+  id          String           @id @default(cuid())
+  type        ViolationType
+  severity    ViolationSeverity
+  employeeId  String
+  deviceInfo  String?
+  timestamp   DateTime         @default(now())
+  latitude    Float?
+  longitude   Float?
+  address     String?
+  description String
+  status      ViolationStatus  @default(ACTIVE)
+  
+  // Network info
+  ipAddress   String?
+  userAgent   String?
+  
+  // Additional data (JSON)
+  additionalData String? // JSON string for flexible data storage
+  
+  // Admin response
+  adminNotes     String?
+  resolvedAt     DateTime?
+  resolvedBy     String?
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  employee Employee @relation(fields: [employeeId], references: [employeeId])
+
+  @@map("security_violations")
+}
+
+model Geofence {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  centerLat   Float
+  centerLng   Float
+  radius      Float    // in meters
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("geofences")
+}
+
+model Admin {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  role      AdminRole @default(ADMIN)
+  isActive  Boolean  @default(true)
+  lastLogin DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("admins")
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String
+  entityId    String?
+  userId      String?
+  userType    String   // 'admin' or 'employee'
+  details     String?  // JSON string
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime @default(now())
+
+  @@map("audit_logs")
+}
+
+// Enums
+enum AttendanceStatus {
+  VALID
+  SUSPICIOUS
+  BLOCKED
+  PENDING_REVIEW
+}
+
+enum DeviceStatus {
+  ONLINE
+  OFFLINE
+  BLOCKED
+  SUSPICIOUS
+}
+
+enum TrustLevel {
+  HIGH
+  MEDIUM
+  LOW
+  BLOCKED
+}
+
+enum ViolationType {
+  MOCK_LOCATION
+  GPS_SPOOFING
+  VPN_DETECTED
+  ROOT_ACCESS
+  DEBUGGING_ENABLED
+  UNKNOWN_SOURCES
+  XPOSED_FRAMEWORK
+  EMULATOR_DETECTED
+  LOCATION_OUTSIDE_GEOFENCE
+  IMPOSSIBLE_MOVEMENT
+  NETWORK_MISMATCH
+  UNKNOWN
+}
+
+enum ViolationSeverity {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum ViolationStatus {
+  ACTIVE
+  INVESTIGATING
+  RESOLVED
+  FALSE_POSITIVE
+}
+
+enum AdminRole {
+  SUPER_ADMIN
+  ADMIN
+  VIEWER
+}
